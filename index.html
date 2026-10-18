@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Consulta de situação</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;background:#eef3f8;margin:0;color:#1d2b3a}
+.c{max-width:430px;margin:28px auto;background:#fff;border-radius:14px;box-shadow:0 2px 14px #0002;overflow:hidden}
+.h{background:#0F4C81;color:#fff;padding:18px 20px}.h b{font-size:13px;opacity:.85;display:block}.h span{font-size:20px}
+.b{padding:20px}.s{font-size:22px;font-weight:700;padding:14px;border-radius:10px;text-align:center;margin:10px 0 16px}
+.l{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e6ecf2;font-size:15px}
+.l span:first-child{color:#5b6b7c}.f{padding:14px 20px;font-size:12px;color:#6b7a8a;background:#f6f9fc}
+.ok{background:#E8F5E9;color:#1B5E20}.bad{background:#FFEBEE;color:#B71C1C}.warn{background:#FFF8E1;color:#7A5B00}
+.info{background:#E3F0FF;color:#0F4C81}.mut{background:#F1F3F4;color:#5F6368}</style></head><body>
+<div class="c"><div class="h"><b id="org">Vigilância Sanitária</b><span id="tit">Consulta de situação</span></div>
+<div class="b" id="b">Carregando…</div><div class="f" id="f"></div></div>
+<script>
+const c=new URLSearchParams(location.search).get("c")||"";
+const b=document.getElementById("b");
+function br(iso){if(!iso)return"";const p=iso.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
+function erro(t){b.innerHTML='<div class="s mut">'+t+'</div>'}
+if(!/^[a-z0-9]{6,40}$/.test(c)){erro("Código inválido.")}else{
+fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
+ if(d.removido){erro("Documento não encontrado.");return}
+ document.getElementById("org").textContent=d.orgao||"Vigilância Sanitária";
+ document.getElementById("tit").textContent=d.tipo+" nº "+d.numero;
+ let s=d.situacao,k="info",hoje=new Date().toISOString().slice(0,10);
+ if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="warn";
+ else if(s=="Aguardando recebimento")k="info";
+ else if(s=="Emitida"){if(d.vencimento&&d.vencimento<hoje){s="Prazo vencido";k="bad"}else{s="Em prazo";k="warn"}}
+ let h='<div class="s '+k+'">'+s+'</div>';
+ h+='<div class="l"><span>Data do auto</span><span>'+br(d.data)+'</span></div>';
+ if(d.vencimento)h+='<div class="l"><span>Prazo até</span><span>'+br(d.vencimento)+'</span></div>';
+ const e=d.exigencias;if(e&&e.total){h+='<div class="l"><span>Exigências</span><span>'+e.total+' ('+e.cumpridas+' cumprida(s), '+e.pendentes+' pendente(s)'+(e.prorrogadas?', '+e.prorrogadas+' prorrogada(s)':'')+(e.descumpridas?', '+e.descumpridas+' descumprida(s)':'')+')</span></div>'}
+ b.innerHTML=h;document.getElementById("f").textContent="Atualizado em "+(d.atualizado||"")+". Esta consulta mostra apenas a situação do documento."
+}).catch(()=>erro("Documento não encontrado ou ainda não sincronizado."))}
+</script></body></html>
