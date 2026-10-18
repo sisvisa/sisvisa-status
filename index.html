@@ -15,18 +15,25 @@ const c=new URLSearchParams(location.search).get("c")||"";
 const b=document.getElementById("b");
 function br(iso){if(!iso)return"";const p=iso.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
 function erro(t){b.innerHTML='<div class="s mut">'+t+'</div>'}
+function dias(iso){return Math.round((new Date(iso+"T00:00:00")-new Date(new Date().toISOString().slice(0,10)+"T00:00:00"))/864e5)}
 if(!/^[a-z0-9]{6,40}$/.test(c)){erro("Código inválido.")}else{
 fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
  if(d.removido){erro("Documento não encontrado.");return}
  document.getElementById("org").textContent=d.orgao||"Vigilância Sanitária";
  document.getElementById("tit").textContent=d.tipo+" nº "+d.numero;
- let s=d.situacao,k="info",hoje=new Date().toISOString().slice(0,10);
- if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="warn";
- else if(s=="Aguardando recebimento")k="info";
- else if(s=="Emitida"){if(d.vencimento&&d.vencimento<hoje){s="Prazo vencido";k="bad"}else{s="Em prazo";k="warn"}}
+ let s=d.situacao,k="info",v=d.vencimento||"",rot="Prazo até";
+ if(d.tipo=="Alvará Sanitário"){rot="Válido até";
+  if(s=="Ativo"){const n=dias(v);if(n<0){s="Vencido";k="bad"}else if(n<=60){s="Vigente (vence em "+n+" dia(s))";k="warn"}else{s="Vigente";k="ok"}}
+  else if(s=="Aguardando emissão")k="info";else k="mut"}
+ else if(d.tipo=="Documento"){rot="Válido até";
+  if(s=="Emitido"){if(v&&dias(v)<0){s="Expirado";k="bad"}else{s="Emitido";k="ok"}}else k="mut"}
+ else{
+  if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="warn";
+  else if(s=="Aguardando recebimento")k="info";
+  else if(s=="Emitida"){if(v&&dias(v)<0){s="Prazo vencido";k="bad"}else{s="Em prazo";k="warn"}}}
  let h='<div class="s '+k+'">'+s+'</div>';
- h+='<div class="l"><span>Data do auto</span><span>'+br(d.data)+'</span></div>';
- if(d.vencimento)h+='<div class="l"><span>Prazo até</span><span>'+br(d.vencimento)+'</span></div>';
+ if(d.titulo)h+='<div class="l"><span>Documento</span><span>'+d.titulo.replace(/</g,"&lt;")+'</span></div>';
+ if(v)h+='<div class="l"><span>'+rot+'</span><span>'+br(v)+'</span></div>';
  const e=d.exigencias;if(e&&e.total){h+='<div class="l"><span>Exigências</span><span>'+e.total+' ('+e.cumpridas+' cumprida(s), '+e.pendentes+' pendente(s)'+(e.prorrogadas?', '+e.prorrogadas+' prorrogada(s)':'')+(e.descumpridas?', '+e.descumpridas+' descumprida(s)':'')+')</span></div>'}
  b.innerHTML=h;document.getElementById("f").textContent="Atualizado em "+(d.atualizado||"")+". Esta consulta mostra apenas a situação do documento."
 }).catch(()=>erro("Documento não encontrado ou ainda não sincronizado."))}
