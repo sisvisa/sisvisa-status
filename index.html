@@ -7,7 +7,7 @@
 .l{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e6ecf2;font-size:15px}
 .l span:first-child{color:#5b6b7c}.f{padding:14px 20px;font-size:12px;color:#6b7a8a;background:#f6f9fc}
 .ok{background:#E8F5E9;color:#1B5E20}.bad{background:#FFEBEE;color:#B71C1C}.warn{background:#FFF8E1;color:#7A5B00}
-.info{background:#E3F0FF;color:#0F4C81}.mut{background:#F1F3F4;color:#5F6368}</style></head><body>
+.info{background:#E3F0FF;color:#0F4C81}.mut{background:#F1F3F4;color:#5F6368}.yel{background:#FFF3C4;color:#8A6100}</style></head><body>
 <div class="c"><div class="h"><b id="org">Vigilância Sanitária</b><span id="tit">Consulta de situação</span></div>
 <div class="b" id="b">Carregando…</div><div class="f" id="f"></div></div>
 <script>
@@ -22,13 +22,14 @@ fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  document.getElementById("org").textContent=d.orgao||"Vigilância Sanitária";
  document.getElementById("tit").textContent=d.tipo+" nº "+d.numero;
  let s=d.situacao,k="info",v=d.vencimento||"",rot="Prazo até";
- if(d.tipo=="Alvará Sanitário"){rot="Válido até";
+ if(d.tipo=="Alvará Sanitário"||d.tipo=="Licença Sanitária de Transporte"){rot="Válido até";
   if(s=="Ativo"){const n=dias(v);if(n<0){s="Vencido";k="bad"}else if(n<=60){s="Vigente (vence em "+n+" dia(s))";k="warn"}else{s="Vigente";k="ok"}}
-  else if(s=="Aguardando emissão")k="info";else k="mut"}
+  else if(s=="Aguardando emissão")k="info";else if(s=="Cancelado")k="bad";else k="mut"}
  else if(d.tipo=="Documento"){rot="Válido até";
-  if(s=="Emitido"){if(v&&dias(v)<0){s="Expirado";k="bad"}else{s="Emitido";k="ok"}}else k="mut"}
+  if(s=="Emitido"){if(v&&dias(v)<0){s="Expirado";k="bad"}else{s="Emitido";k="ok"}}else if(s=="Cancelado")k="bad";else k="mut"}
  else{
-  if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="warn";
+  if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="yel";
+  else if(s=="Cancelada"||s=="Cancelado")k="mut";
   else if(s=="Aguardando recebimento")k="info";
   else if(s=="Emitida"){if(v&&dias(v)<0){s="Prazo vencido";k="bad"}else{s="Em prazo";k="warn"}}}
  let h='<div class="s '+k+'">'+s+'</div>';
