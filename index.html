@@ -27,6 +27,10 @@ fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   else if(s=="Aguardando emissão"||s=="Em análise")k="info";else if(s=="Cancelado")k="bad";else k="mut"}
  else if(d.tipo=="Documento"){rot="Válido até";
   if(s=="Emitido"){if(v&&dias(v)<0){s="Expirado";k="bad"}else{s="Emitido";k="ok"}}else if(s=="Cancelado")k="bad";else k="mut"}
+ else if(d.tipo=="Auto de Infração"){rot="Fim do prazo de defesa";
+  if(s=="Lavrado"){if(v&&dias(v)<0){s="Prazo de defesa encerrado";k="bad"}else{s="Em prazo de defesa";k="warn"}}
+  else if(s=="Em defesa")k="yel";else if(s=="Multa mantida")k="bad";else if(s=="Quitado")k="ok";
+  else if(s=="Aguardando recebimento")k="info";else k="mut"}
  else{
   if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="yel";
   else if(s=="Cancelada"||s=="Cancelado")k="mut";
