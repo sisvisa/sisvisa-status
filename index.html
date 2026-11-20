@@ -22,7 +22,10 @@ fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).th
  document.getElementById("org").textContent=d.orgao||"Vigilância Sanitária";
  document.getElementById("tit").textContent=d.tipo+" nº "+d.numero;
  let s=d.situacao,k="info",v=d.vencimento||"",rot="Prazo até";
- if(d.tipo=="Alvará Sanitário"||d.tipo=="Licença Sanitária de Transporte"){rot="Válido até";
+ if(d.tipo=="Alvará Sanitário de Evento"){rot="Evento até";
+  if(s=="Deferido"){if(v&&dias(v)<0){s="Evento encerrado";k="mut"}else{s="Deferido";k="ok"}}
+  else if(s=="Em análise")k="info";else k="bad"}
+ else if(d.tipo=="Alvará Sanitário"||d.tipo=="Licença Sanitária de Transporte"){rot="Válido até";
   if(s=="Ativo"){const n=dias(v);if(n<0){s="Vencido";k="bad"}else if(n<=60){s="Vigente (vence em "+n+" dia(s))";k="warn"}else{s="Vigente";k="ok"}}
   else if(s=="Aguardando emissão"||s=="Em análise")k="info";else if(s=="Cancelado")k="bad";else k="mut"}
  else if(d.tipo=="Documento"){rot="Válido até";
@@ -35,7 +38,8 @@ fetch("s/"+c+".json?"+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).th
   else if(s=="Em defesa"||s=="Em PAS"||s=="Em Processo Administrativo Sanitário")k="yel";else if(s=="Multa mantida")k="bad";else if(s=="Quitado"||s=="Finalizada")k="ok";
   else if(s=="Aguardando recebimento")k="info";else k="mut"}
  else{
-  if(s=="Cumprida")k="ok";else if(s=="Descumprida")k="bad";else if(s=="Prorrogada")k="yel";
+  if(s=="Cumprida"||s=="Finalizada")k="ok";else if(s=="Descumprida")k="bad";
+  else if(s=="Prorrogada"){if(v&&dias(v)<0){s="Prazo vencido";k="bad"}else k="yel"}
   else if(s=="Cancelada"||s=="Cancelado")k="mut";
   else if(s=="Aguardando recebimento")k="info";
   else if(s=="Emitida"){if(v&&dias(v)<0){s="Prazo vencido";k="bad"}else{s="Em prazo";k="warn"}}}
